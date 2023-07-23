@@ -1,6 +1,14 @@
 import express from "express";
 import { customAlphabet } from 'nanoid';
 const nanoid = customAlphabet('1234567890', 20);
+import { MongoClient } from "mongodb";
+
+import './config/index.mjs';
+
+const mongodbURI = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.zzekgfu.mongodb.net/?retryWrites=true&w=majority`;
+const client = new MongoClient(mongodbURI);
+const database = client.db('ecom');
+const productsCollection = database.collection('products');
 
 const app = express();
 app.use(express.json());
@@ -11,14 +19,14 @@ app.get("/", (req, res) => {
 
 
 // Create sample product
-let products = [
-  {
-    id: nanoid(), //number
-    name: "Item one",
-    price: "$8.14",
-    description: "Item description here..."
-  }
-];
+// let products = [
+//   {
+//     id: nanoid(), //number
+//     name: "Item one",
+//     price: "$8.14",
+//     description: "Item description here..."
+//   }
+// ];
 
 
 
@@ -66,7 +74,7 @@ app.get("/product/:id", (req, res) => {
 
 
 // post a product
-app.post("/product", (req, res) => {
+app.post("/product", async (req, res) => {
 
   // {
   //   id: 212342, // always a number
@@ -89,12 +97,22 @@ app.post("/product", (req, res) => {
       }`);
   }
 
-  products.push({
+  const doc = {
     id: nanoid(),
     name: req.body.name,
     price: req.body.price,
     description: req.body.description,
-  });
+  }
+  const result = await productsCollection.insertOne(doc);
+
+
+
+  // products.push({
+  //   id: nanoid(),
+  //   name: req.body.name,
+  //   price: req.body.price,
+  //   description: req.body.description,
+  // });
 
 
   res.status(201).send({ message: "created product" });
